@@ -21,18 +21,15 @@ module.exports = {
         },
         init: function () {
 
-            this.material_is_a_video = false;
+            var isValidSrc = false;
+            var materialAttribute = this.el.getAttribute('material');
+            if (materialAttribute !== null && 'src' in materialAttribute && materialAttribute.src !== "") {
+                var src = materialAttribute.src;
 
-            // Check if material is a video from html tag (object3D.material.map instanceof THREE.VideoTexture does not
-            // always work
+                // If src is an object and its tagName is video or img...
 
-            if (this.el.getAttribute("material") !== null && 'src' in this.el.getAttribute("material") && this.el.getAttribute("material").src !== "") {
-                var src = this.el.getAttribute("material").src;
-
-                // If src is an object and its tagName is video...
-
-                if (typeof src === 'object' && ('tagName' in src && src.tagName === "VIDEO")) {
-                    this.material_is_a_video = true;
+                if (typeof src === 'object' && ('tagName' in src && src.tagName === "VIDEO" || src.tagName === 'IMG')) {
+                    isValidSrc = true;
                 }
             }
 
@@ -48,18 +45,17 @@ module.exports = {
                 return object3D.geometry instanceof geometry;
             });
 
-            if (isValidGeometry && this.material_is_a_video) {
-
+            if (isValidGeometry && isValidSrc) {
                 // if half-dome mode, rebuild geometry (with default 100, radius, 64 width segments and 64 height segments)
+                var geoDef = this.el.getAttribute("geometry");
+                var radius = geoDef.radius || 100;
+                var segmentsWidth = geoDef.segmentsWidth || 64;
+                var segmentsHeight = geoDef.segmentsHeight || 64;
 
                 if (this.data.mode === "half") {
-
-                    var geo_def = this.el.getAttribute("geometry");
-                    var geometry = new THREE.SphereGeometry(geo_def.radius || 100, geo_def.segmentsWidth || 64, geo_def.segmentsHeight || 64, Math.PI / 2, Math.PI, 0, Math.PI);
-
+                    var geometry = new THREE.SphereGeometry(radius, segmentsWidth, segmentsHeight, Math.PI / 2, Math.PI, 0, Math.PI);
                 } else {
-                    var geo_def = this.el.getAttribute("geometry");
-                    var geometry = new THREE.SphereGeometry(geo_def.radius || 100, geo_def.segmentsWidth || 64, geo_def.segmentsHeight || 64);
+                    var geometry = new THREE.SphereGeometry(radius, segmentsWidth, segmentsHeight);
                 }
 
                 // Panorama in front
